@@ -19,6 +19,6 @@ npm run dev
 
 ## Publication
 
-Chaque envoi sur la branche `main` publie le site sur GitHub Pages (`.github/workflows/deploy.yml`).
+Chaque envoi sur la branche `main` publie le site sur GitHub Pages (`.github/workflows/deploy.yml`), via la branche `gh-pages`.
 
 Construit avec React, Vite, Tailwind, shadcn/ui, Nivo et Motion.
