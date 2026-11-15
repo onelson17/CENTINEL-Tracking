@@ -97,23 +97,23 @@ export function Saisie({ periode, onPeriode }: { periode: Periode; onPeriode: (p
   }
 
   return (
-    <div className="mx-auto flex max-w-[1320px] flex-col gap-5 px-10 py-9">
+    <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-6 sm:px-6 lg:gap-5 lg:px-10 lg:py-9">
       <header>
-        <h1 className="font-heading text-[2.6rem] leading-[1.05] font-semibold tracking-tight">Saisir des relevés</h1>
+        <h1 className="font-heading text-[2rem] leading-[1.05] font-semibold tracking-tight lg:text-[2.6rem]">Saisir des relevés</h1>
         <p className="mt-2 max-w-[62ch] text-muted-foreground">
           Remplissez la grille pour une journée ou une plage de dates, ou importez un fichier Excel.
           Un relevé déjà enregistré pour le même agent et la même période est remplacé.
         </p>
       </header>
 
-      <div className="grid grid-cols-12 items-start gap-5">
-        <section className="col-span-8 rounded-2xl border bg-card">
-          <div className="flex items-center justify-between gap-4 p-6 pb-4">
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12 xl:gap-5">
+        <section className="min-w-0 rounded-2xl border bg-card xl:col-span-8">
+          <div className="flex flex-col gap-3 p-5 pb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 lg:p-6 lg:pb-4">
             <div>
               <h2 className="font-heading text-lg font-semibold">Saisie manuelle</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">Laissez vide la ligne d’un agent absent.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <span className="text-sm text-muted-foreground">Période du relevé</span>
               <PeriodePicker value={periode} onChange={onPeriode} />
             </div>
@@ -122,14 +122,14 @@ export function Saisie({ periode, onPeriode }: { periode: Periode; onPeriode: (p
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-y bg-muted/60 text-left text-muted-foreground">
-                  <th className="py-2.5 pl-6 font-medium">Agent</th>
-                  {CHAMPS.map((c) => <th key={c.cle} className="px-1.5 py-2.5 font-medium last:pr-6">{c.nom}</th>)}
+                  <th className="sticky left-0 bg-muted py-2.5 pl-5 font-medium lg:pl-6">Agent</th>
+                  {CHAMPS.map((c) => <th key={c.cle} className="px-1.5 py-2.5 font-medium whitespace-nowrap last:pr-6">{c.nom}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {AGENTS.map((a) => (
                   <tr key={a.id} className="border-b last:border-0">
-                    <th scope="row" className="py-2 pl-6 text-left font-medium whitespace-nowrap">{nomComplet(a)}</th>
+                    <th scope="row" className="sticky left-0 bg-card py-2 pr-2 pl-5 text-left font-medium whitespace-nowrap lg:pl-6">{nomComplet(a)}</th>
                     {CHAMPS.map((c) => (
                       <td key={c.cle} className="px-1.5 py-2 last:pr-6">
                         <Input
@@ -147,7 +147,7 @@ export function Saisie({ periode, onPeriode }: { periode: Periode; onPeriode: (p
               </tbody>
             </table>
           </div>
-          <div className="flex items-start justify-between gap-6 border-t p-6">
+          <div className="flex flex-col gap-4 border-t p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 lg:p-6">
             <ul role="alert" className="space-y-1 text-sm text-destructive">
               {erreurs.map((e) => <li key={e}>{e}</li>)}
             </ul>
@@ -155,7 +155,7 @@ export function Saisie({ periode, onPeriode }: { periode: Periode; onPeriode: (p
           </div>
         </section>
 
-        <section className="col-span-4 rounded-2xl border bg-card p-6">
+        <section className="min-w-0 rounded-2xl border bg-card p-5 lg:p-6 xl:col-span-4">
           <h2 className="font-heading text-lg font-semibold">Importer un fichier Excel</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Une ligne par agent et par période, au format du modèle. Depuis Google Sheets : Fichier, Télécharger,

@@ -16,6 +16,7 @@ import { exporterPdf } from '@/lib/pdf'
 import { construireRapport } from '@/lib/rapport'
 import { dansPeriode, serie, totaux } from '@/lib/stats'
 import { useStore } from '@/lib/store'
+import { useMobile } from '@/lib/useMobile'
 import type { Periode, Totaux } from '@/lib/types'
 import {
   BarresComparaison, BarresParAgent, C, CamembertActivite, CourbeEvolution, DonutDecroche, SERIES,
@@ -33,7 +34,7 @@ const INDICATEURS: { nom: string; valeur: (t: Totaux) => number; format: (n: num
 
 function Bloc({ titre, aide, ordre, className = '', children }: { titre: string; aide?: string; ordre: number; className?: string; children: ReactNode }) {
   return (
-    <Reveal as="section" ordre={ordre} className={`rounded-2xl border bg-card p-6 ${className}`}>
+    <Reveal as="section" ordre={ordre} className={`min-w-0 rounded-2xl border bg-card p-5 lg:p-6 ${className}`}>
       <h2 className="font-heading text-lg font-semibold">{titre}</h2>
       {aide && <p className="mt-0.5 text-sm text-muted-foreground">{aide}</p>}
       {children}
@@ -65,6 +66,7 @@ export function Dashboard({
   onSaisie: () => void
 }) {
   const { releves } = useStore()
+  const mobile = useMobile()
   const agent = AGENTS.find((a) => a.id === agentId)
 
   const d = useMemo(() => {
@@ -113,14 +115,14 @@ export function Dashboard({
   }
 
   return (
-    <div className="mx-auto flex max-w-[1320px] flex-col gap-5 px-10 py-9">
-      <Reveal as="header" className="flex items-end justify-between gap-6">
+    <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-6 sm:px-6 lg:gap-5 lg:px-10 lg:py-9">
+      <Reveal as="header" className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-6">
         <div className="min-w-0">
           {titres((style, id) => {
             const a = AGENTS.find((x) => x.id === id)
             return (
               <animated.div style={style}>
-                <h1 className="font-heading text-[2.6rem] leading-[1.05] font-semibold tracking-tight">
+                <h1 className="font-heading text-[2rem] leading-[1.05] font-semibold tracking-tight lg:text-[2.6rem]">
                   {a ? nomComplet(a) : 'Équipe permanence'}
                 </h1>
                 <p className="mt-2 text-muted-foreground">
@@ -158,9 +160,9 @@ export function Dashboard({
         </Reveal>
       ) : (
         <>
-          <Reveal as="dl" ordre={1} className="grid grid-cols-6 divide-x rounded-2xl border bg-card">
+          <Reveal as="dl" ordre={1} className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-3 xl:grid-cols-6">
             {INDICATEURS.map((i) => (
-              <div key={i.nom} className="px-5 py-5">
+              <div key={i.nom} className="bg-card px-5 py-4 lg:py-5">
                 <dt className="truncate text-sm text-muted-foreground">{i.nom}</dt>
                 <dd className={`mt-1.5 font-heading text-[1.65rem] leading-none font-semibold whitespace-nowrap ${i.nom === 'Appels manqués' ? 'text-primary' : ''}`}>
                   <AnimatedNumber value={i.valeur(t)} format={i.format} />
@@ -169,8 +171,8 @@ export function Dashboard({
             ))}
           </Reveal>
 
-          <div className="grid grid-cols-12 gap-5">
-            <Bloc ordre={2} titre="Taux de décroché" aide="Appels entrants pris par rapport aux appels reçus" className="col-span-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5">
+            <Bloc ordre={2} titre="Taux de décroché" aide="Appels entrants pris par rapport aux appels reçus" className="lg:col-span-4">
               <div className="relative mx-auto mt-2 h-60 max-w-72">
                 <DonutDecroche t={t} />
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -188,7 +190,7 @@ export function Dashboard({
               </div>
             </Bloc>
 
-            <Bloc ordre={3} titre="Évolution sur la période" className="col-span-8">
+            <Bloc ordre={3} titre="Évolution sur la période" className="lg:col-span-8">
               <div className="mt-3">
                 <Legende items={[
                   { nom: 'Appels entrants', couleur: C.eau },
@@ -196,10 +198,10 @@ export function Dashboard({
                   { nom: 'Appels manqués', couleur: C.rouge },
                 ]} />
               </div>
-              <div className="mt-2 h-64"><CourbeEvolution points={d.points} /></div>
+              <div className="mt-2 h-56 lg:h-64"><CourbeEvolution points={d.points} compact={mobile} /></div>
             </Bloc>
 
-            <Bloc ordre={4} titre="Répartition de l’activité" className="col-span-4">
+            <Bloc ordre={4} titre="Répartition de l’activité" className="lg:col-span-4">
               <div className="mx-auto mt-3 h-52 max-w-60"><CamembertActivite t={t} /></div>
               <ul className="mt-4 space-y-2 text-sm">
                 {SERIES.map((s) => (
@@ -216,7 +218,7 @@ export function Dashboard({
             <Bloc ordre={5}
               titre={agent ? `${agent.prenom} face à la moyenne de l’équipe` : 'Activité par agent'}
               aide={agent ? undefined : 'Cliquez sur un agent pour ouvrir sa fiche'}
-              className="col-span-8"
+              className="lg:col-span-8"
             >
               <div className="mt-3">
                 <Legende items={agent
@@ -225,13 +227,13 @@ export function Dashboard({
               </div>
               <div className="mt-2 h-[22rem]">
                 {agent
-                  ? <BarresComparaison prenom={agent.prenom} agent={t} moyenne={d.moyenne} />
-                  : <BarresParAgent lignes={[...d.parAgent].reverse()} onAgent={onAgent} />}
+                  ? <BarresComparaison prenom={agent.prenom} agent={t} moyenne={d.moyenne} compact={mobile} />
+                  : <BarresParAgent lignes={[...d.parAgent].reverse()} onAgent={onAgent} compact={mobile} />}
               </div>
             </Bloc>
           </div>
 
-          <Bloc ordre={6} titre={agent ? 'Détail des relevés' : 'Détail par agent'} className="px-0 pb-2 [&>h2]:px-6">
+          <Bloc ordre={6} titre={agent ? 'Détail des relevés' : 'Détail par agent'} className="px-0 pb-2 lg:px-0 [&>h2]:px-5 lg:[&>h2]:px-6">
             <div className="mt-3 max-h-[26rem] overflow-auto">
               <Table>
                 <TableHeader>

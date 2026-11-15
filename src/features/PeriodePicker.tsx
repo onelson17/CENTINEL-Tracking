@@ -8,6 +8,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { iso, libellePeriode } from '@/lib/format'
 import type { Periode } from '@/lib/types'
+import { useMobile } from '@/lib/useMobile'
 
 function raccourcis(): [string, Periode][] {
   const j = new Date()
@@ -24,6 +25,7 @@ function raccourcis(): [string, Periode][] {
 
 export function PeriodePicker({ value, onChange }: { value: Periode; onChange: (p: Periode) => void }) {
   const [ouvert, setOuvert] = useState(false)
+  const mobile = useMobile()
   const [brouillon, setBrouillon] = useState<DateRange | undefined>()
 
   const ouvrir = (o: boolean) => {
@@ -41,10 +43,10 @@ export function PeriodePicker({ value, onChange }: { value: Periode; onChange: (
         <CalendarDays className="text-muted-foreground" />
         <span className="tnum">{libellePeriode(value.du, value.au)}</span>
       </PopoverTrigger>
-      <PopoverContent align="end" className="flex w-auto flex-row gap-0 p-0">
-        <div className="flex w-44 flex-col gap-0.5 border-r p-2">
+      <PopoverContent align={mobile ? 'start' : 'end'} className="flex w-auto max-w-[calc(100vw-1.5rem)] flex-col gap-0 p-0 sm:flex-row">
+        <div className="flex flex-wrap gap-0.5 border-b p-2 sm:w-44 sm:flex-col sm:flex-nowrap sm:border-r sm:border-b-0">
           {raccourcis().map(([nom, p]) => (
-            <Button key={nom} variant="ghost" className="justify-start font-normal" onClick={() => choisir(p)}>
+            <Button key={nom} variant="ghost" className="justify-start font-normal max-sm:bg-muted" onClick={() => choisir(p)}>
               {nom}
             </Button>
           ))}
@@ -53,12 +55,13 @@ export function PeriodePicker({ value, onChange }: { value: Periode; onChange: (
           <Calendar
             mode="range"
             locale={fr}
-            numberOfMonths={2}
-            defaultMonth={subMonths(parseISO(value.au), 1)}
+            numberOfMonths={mobile ? 1 : 2}
+            defaultMonth={mobile ? parseISO(value.au) : subMonths(parseISO(value.au), 1)}
+            className="max-sm:mx-auto"
             selected={brouillon}
             onSelect={setBrouillon}
           />
-          <div className="flex items-center justify-between gap-3 border-t px-3 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t px-3 py-2.5">
             <p className="text-sm text-muted-foreground">
               {brouillon?.from
                 ? libellePeriode(iso(brouillon.from), iso(brouillon.to ?? brouillon.from))

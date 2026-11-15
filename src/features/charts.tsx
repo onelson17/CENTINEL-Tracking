@@ -66,8 +66,8 @@ export function CamembertActivite({ t }: { t: Totaux }) {
   )
 }
 
-export function CourbeEvolution({ points }: { points: PointJour[] }) {
-  const pas = Math.max(1, Math.ceil(points.length / 8))
+export function CourbeEvolution({ points, compact }: { points: PointJour[]; compact?: boolean }) {
+  const pas = Math.max(1, Math.ceil(points.length / (compact ? 4 : 8)))
   const graduations = points.filter((_, i) => i % pas === 0).map((p) => p.date)
   const serie = (id: string, f: (p: PointJour) => number) => ({ id, data: points.map((p) => ({ x: p.date, y: f(p) })) })
   return (
@@ -90,7 +90,7 @@ export function CourbeEvolution({ points }: { points: PointJour[] }) {
       axisLeft={{ tickSize: 0, tickPadding: 10, tickValues: 4 }}
       gridYValues={4}
       axisBottom={{ tickSize: 0, tickPadding: 12, tickValues: graduations, format: (d) => jourCourt(String(d)) }}
-      margin={{ top: 12, right: 16, bottom: 36, left: 44 }}
+      margin={{ top: 12, right: compact ? 12 : 16, bottom: 36, left: compact ? 34 : 44 }}
       enableSlices="x"
       sliceTooltip={({ slice }) => (
         <div className="rounded-xl border bg-card px-3 py-2 text-sm shadow-lg">
@@ -113,9 +113,11 @@ export function CourbeEvolution({ points }: { points: PointJour[] }) {
 export function BarresParAgent({
   lignes,
   onAgent,
+  compact,
 }: {
   lignes: { id: string; agent: string; t: Totaux }[]
   onAgent: (id: string) => void
+  compact?: boolean
 }) {
   const data = lignes.map((l) => ({
     id: l.id,
@@ -136,8 +138,8 @@ export function BarresParAgent({
       enableGridY={false}
       enableGridX
       axisLeft={{ tickSize: 0, tickPadding: 12 }}
-      axisBottom={{ tickSize: 0, tickPadding: 8, tickValues: 5 }}
-      margin={{ top: 4, right: 20, bottom: 32, left: 96 }}
+      axisBottom={{ tickSize: 0, tickPadding: 8, tickValues: compact ? 3 : 5 }}
+      margin={{ top: 4, right: 20, bottom: 32, left: compact ? 78 : 96 }}
       valueFormat={entier}
       onClick={(d) => onAgent(String(d.data.id))}
       onMouseEnter={(_, e) => ((e.currentTarget as SVGElement).style.cursor = 'pointer')}
@@ -147,7 +149,14 @@ export function BarresParAgent({
   )
 }
 
-export function BarresComparaison({ prenom, agent, moyenne }: { prenom: string; agent: Totaux; moyenne: Totaux }) {
+export function BarresComparaison({
+  prenom, agent, moyenne, compact,
+}: {
+  prenom: string
+  agent: Totaux
+  moyenne: Totaux
+  compact?: boolean
+}) {
   const autre = 'Moyenne de l’équipe'
   return (
     <ResponsiveBar
@@ -162,8 +171,9 @@ export function BarresComparaison({ prenom, agent, moyenne }: { prenom: string; 
       enableLabel={false}
       axisLeft={{ tickSize: 0, tickPadding: 10, tickValues: 4 }}
       gridYValues={4}
-      axisBottom={{ tickSize: 0, tickPadding: 12 }}
-      margin={{ top: 8, right: 16, bottom: 36, left: 48 }}
+      // Sur mobile, les libellés complets se chevauchent : on enlève le préfixe « Appels ».
+      axisBottom={{ tickSize: 0, tickPadding: 12, format: (v) => (compact ? String(v).replace(/^(Appels|Mails) /, '') : String(v)) }}
+      margin={{ top: 8, right: compact ? 8 : 16, bottom: 36, left: compact ? 38 : 48 }}
       valueFormat={entier}
       motionConfig="gentle"
       theme={theme}

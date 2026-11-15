@@ -19,7 +19,7 @@ function Entree({ actif, onClick, children }: { actif: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       aria-current={actif ? 'page' : undefined}
-      className="relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.94rem] outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:hover:bg-transparent"
+      className="relative flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-left lg:w-full text-[0.94rem] outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:hover:bg-transparent"
     >
       <span className={`flex min-w-0 items-center gap-3 transition-colors duration-300 ${actif ? 'text-white' : ''}`}>{children}</span>
     </button>
@@ -46,32 +46,50 @@ export default function App() {
   // Le fond sombre du menu glisse jusqu'à l'entrée active.
   useReducedMotion()
   const menu = useRef<HTMLDivElement>(null)
-  const [fond, fondApi] = useSpring(() => ({ y: 0, height: 0, opacity: 0, config: { tension: 230, friction: 28 } }))
+  const [fond, fondApi] = useSpring(() => ({ x: 0, y: 0, width: 0, height: 0, opacity: 0, config: { tension: 230, friction: 28 } }))
   const cle = page.type === 'tableau' ? (page.agentId ?? 'equipe') : null
   useLayoutEffect(() => {
-    const el = menu.current?.querySelector<HTMLElement>('[aria-current="page"]')
-    if (!el) return void fondApi.start({ opacity: 0 })
-    const premier = fond.height.get() === 0
-    fondApi.start({ y: el.offsetTop, height: el.offsetHeight, opacity: 1, immediate: premier })
+    const placer = (immediat: boolean) => {
+      const el = menu.current?.querySelector<HTMLElement>('[aria-current="page"]')
+      if (!el) return void fondApi.start({ opacity: 0 })
+      fondApi.start({
+        x: el.offsetLeft, y: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight, opacity: 1,
+        immediate: immediat || fond.height.get() === 0,
+      })
+      return el
+    }
+    // Sur mobile le menu défile à l'horizontale : on garde l'entrée active visible.
+    placer(false)?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    // Le menu change de forme entre mobile et ordinateur : on replace le fond sans animation.
+    const obs = new ResizeObserver(() => placer(true)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }))
+    if (menu.current) obs.observe(menu.current)
+    return () => obs.disconnect()
   }, [cle, fond, fondApi])
 
   return (
     <StoreProvider>
-      <div className="flex min-h-screen min-w-[1180px]">
-        <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r bg-card">
-          <div className="flex items-center gap-3 px-6 pt-7 pb-6">
-            <span className="h-9 w-1.5 rounded-full bg-primary" />
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <aside className="sticky top-0 z-20 flex shrink-0 flex-col border-b bg-card lg:h-screen lg:w-64 lg:border-r lg:border-b-0">
+          <div className="flex items-center gap-3 px-4 pt-3 pb-2 lg:px-6 lg:pt-7 lg:pb-6">
+            <span className="h-7 w-1.5 rounded-full bg-primary lg:h-9" />
             <p className="font-heading text-[1.15rem] leading-tight font-semibold">Centinel-tracking</p>
+            <Button
+              variant={page.type === 'saisie' ? 'secondary' : 'default'}
+              className="ml-auto h-9 px-3 lg:hidden"
+              onClick={() => setPage({ type: 'saisie' })}
+            >
+              <PenLine /> Saisir
+            </Button>
           </div>
-          <nav aria-label="Vues" className="flex-1 overflow-y-auto px-3">
-            <div ref={menu} className="relative">
-            <animated.span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 rounded-xl bg-encre" style={fond} />
+          <nav aria-label="Vues" className="overflow-x-auto px-3 pb-2 [scrollbar-width:none] lg:flex-1 lg:overflow-x-visible lg:overflow-y-auto lg:pb-0">
+            <div ref={menu} className="relative flex w-max items-center gap-1 lg:block lg:w-auto">
+            <animated.span aria-hidden className="pointer-events-none absolute top-0 left-0 rounded-xl bg-encre" style={fond} />
             <Entree actif={page.type === 'tableau' && !agentActif} onClick={() => setPage({ type: 'tableau' })}>
               <span className="flex size-8 items-center justify-center rounded-full bg-primary text-white"><Users className="size-4" /></span>
-              <span className="font-medium">Toute l’équipe</span>
+              <span className="font-medium whitespace-nowrap">Toute l’équipe</span>
             </Entree>
-            <p className="px-3 pt-5 pb-2 text-sm text-muted-foreground">Agents</p>
-            <ul className="space-y-0.5">
+            <p className="hidden px-3 pt-5 pb-2 text-sm text-muted-foreground lg:block">Agents</p>
+            <ul className="flex gap-1 lg:block lg:space-y-0.5">
               {AGENTS.map((a) => {
                 const actif = agentActif === a.id
                 return (
@@ -80,7 +98,7 @@ export default function App() {
                       <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${actif ? 'bg-white/15' : 'bg-secondary text-eau'}`}>
                         {initiales(a)}
                       </span>
-                      <span className="truncate">{nomComplet(a)}</span>
+                      <span className="whitespace-nowrap lg:truncate">{nomComplet(a)}</span>
                     </Entree>
                   </li>
                 )
@@ -88,7 +106,7 @@ export default function App() {
             </ul>
             </div>
           </nav>
-          <div className="border-t p-4">
+          <div className="hidden border-t p-4 lg:block">
             <Button
               size="lg"
               variant={page.type === 'saisie' ? 'secondary' : 'default'}
