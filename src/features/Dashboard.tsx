@@ -27,8 +27,8 @@ const INDICATEURS: { nom: string; valeur: (t: Totaux) => number; format: (n: num
   { nom: 'Appels entrants', valeur: (t) => t.entrants, format: entier },
   { nom: 'Appels sortants', valeur: (t) => t.sortants, format: entier },
   { nom: 'Appels manqués', valeur: (t) => t.manques, format: entier },
-  { nom: 'Durée moyenne d’appel', valeur: (t) => t.dureeMoy, format: duree },
-  { nom: 'Temps d’attente moyen', valeur: (t) => t.attenteMoy, format: duree },
+  { nom: 'Durée moy. d’appel', valeur: (t) => t.dureeMoy, format: duree },
+  { nom: 'Attente moyenne', valeur: (t) => t.attenteMoy, format: duree },
 ]
 
 function Bloc({ titre, aide, ordre, className = '', children }: { titre: string; aide?: string; ordre: number; className?: string; children: ReactNode }) {
@@ -162,7 +162,7 @@ export function Dashboard({
             {INDICATEURS.map((i) => (
               <div key={i.nom} className="px-5 py-5">
                 <dt className="truncate text-sm text-muted-foreground">{i.nom}</dt>
-                <dd className={`mt-1.5 font-heading text-[1.45rem] leading-none font-semibold whitespace-nowrap ${i.nom === 'Appels manqués' ? 'text-primary' : ''}`}>
+                <dd className={`mt-1.5 font-heading text-[1.65rem] leading-none font-semibold whitespace-nowrap ${i.nom === 'Appels manqués' ? 'text-primary' : ''}`}>
                   <AnimatedNumber value={i.valeur(t)} format={i.format} />
                 </dd>
               </div>

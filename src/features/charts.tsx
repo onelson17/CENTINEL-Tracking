@@ -15,7 +15,7 @@ export const SERIES = [
 ] as const
 
 const theme = {
-  text: { fontFamily: "'Onest Variable', sans-serif", fontSize: 12, fill: '#5a676c' },
+  text: { fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter Variable', sans-serif", fontSize: 12, fill: '#5a676c' },
   axis: { ticks: { text: { fontSize: 12, fill: '#5a676c' } } },
   grid: { line: { stroke: '#e9eded' } },
   tooltip: { container: { fontSize: 13, borderRadius: 10, boxShadow: '0 6px 24px rgba(28,37,41,.14)', color: C.encre } },
