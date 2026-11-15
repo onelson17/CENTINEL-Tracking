@@ -13,7 +13,7 @@ export function exporterPdf(r: Rapport) {
   doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(28, 37, 41)
   doc.text(net(r.titre), 56, 56)
   doc.setFont('helvetica', 'normal').setFontSize(11).setTextColor(90, 103, 108)
-  doc.text(net(`Permanence assainissement - ${r.periode}`), 56, 72)
+  doc.text(net(`Centinel-tracking - ${r.periode}`), 56, 72)
 
   autoTable(doc, {
     startY: 96,

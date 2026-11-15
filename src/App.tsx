@@ -56,9 +56,7 @@ export default function App() {
         <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r bg-card">
           <div className="flex items-center gap-3 px-6 pt-7 pb-6">
             <span className="h-9 w-1.5 rounded-full bg-primary" />
-            <p className="font-heading text-[1.05rem] leading-tight font-semibold">
-              Permanence<br />assainissement
-            </p>
+            <p className="font-heading text-[1.15rem] leading-tight font-semibold">Centinel-tracking</p>
           </div>
           <nav aria-label="Vues" className="flex-1 overflow-y-auto px-3">
             <Entree actif={page.type === 'tableau' && !agentActif} onClick={() => setPage({ type: 'tableau' })}>
