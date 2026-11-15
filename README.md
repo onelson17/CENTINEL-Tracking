@@ -21,4 +21,4 @@ npm run dev
 
 Chaque envoi sur la branche `main` publie le site sur GitHub Pages (`.github/workflows/deploy.yml`), via la branche `gh-pages`.
 
-Construit avec React, Vite, Tailwind, shadcn/ui, Nivo et Motion.
+Construit avec React, Vite, Tailwind, shadcn/ui, Nivo et React Spring.

@@ -1,7 +1,7 @@
 import { subDays } from 'date-fns'
 import { PenLine, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { animated, useReducedMotion, useSpring } from '@react-spring/web'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { Dashboard } from '@/features/Dashboard'
@@ -19,16 +19,9 @@ function Entree({ actif, onClick, children }: { actif: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       aria-current={actif ? 'page' : undefined}
-      className="relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.94rem] outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+      className="relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.94rem] outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:hover:bg-transparent"
     >
-      {actif && (
-        <motion.span
-          layoutId="entree-active"
-          className="absolute inset-0 rounded-xl bg-encre"
-          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-        />
-      )}
-      <span className={`relative flex min-w-0 items-center gap-3 ${actif ? 'text-white' : ''}`}>{children}</span>
+      <span className={`flex min-w-0 items-center gap-3 transition-colors duration-300 ${actif ? 'text-white' : ''}`}>{children}</span>
     </button>
   )
 }
@@ -50,6 +43,18 @@ export default function App() {
 
   const agentActif = page.type === 'tableau' ? page.agentId : undefined
 
+  // Le fond sombre du menu glisse jusqu'à l'entrée active.
+  useReducedMotion()
+  const menu = useRef<HTMLDivElement>(null)
+  const [fond, fondApi] = useSpring(() => ({ y: 0, height: 0, opacity: 0, config: { tension: 230, friction: 28 } }))
+  const cle = page.type === 'tableau' ? (page.agentId ?? 'equipe') : null
+  useLayoutEffect(() => {
+    const el = menu.current?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (!el) return void fondApi.start({ opacity: 0 })
+    const premier = fond.height.get() === 0
+    fondApi.start({ y: el.offsetTop, height: el.offsetHeight, opacity: 1, immediate: premier })
+  }, [cle, fond, fondApi])
+
   return (
     <StoreProvider>
       <div className="flex min-h-screen min-w-[1180px]">
@@ -59,6 +64,8 @@ export default function App() {
             <p className="font-heading text-[1.15rem] leading-tight font-semibold">Centinel-tracking</p>
           </div>
           <nav aria-label="Vues" className="flex-1 overflow-y-auto px-3">
+            <div ref={menu} className="relative">
+            <animated.span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 rounded-xl bg-encre" style={fond} />
             <Entree actif={page.type === 'tableau' && !agentActif} onClick={() => setPage({ type: 'tableau' })}>
               <span className="flex size-8 items-center justify-center rounded-full bg-primary text-white"><Users className="size-4" /></span>
               <span className="font-medium">Toute l’équipe</span>
@@ -79,6 +86,7 @@ export default function App() {
                 )
               })}
             </ul>
+            </div>
           </nav>
           <div className="border-t p-4">
             <Button

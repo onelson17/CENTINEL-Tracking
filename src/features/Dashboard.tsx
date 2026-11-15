@@ -1,8 +1,9 @@
 import { Download, FileSpreadsheet, FileText } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { animated, useTransition } from '@react-spring/web'
 import { useMemo, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
+import { Reveal } from '@/components/Reveal'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -30,18 +31,13 @@ const INDICATEURS: { nom: string; valeur: (t: Totaux) => number; format: (n: num
   { nom: 'Temps d’attente moyen', valeur: (t) => t.attenteMoy, format: duree },
 ]
 
-const apparition = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
-}
-
-function Bloc({ titre, aide, className = '', children }: { titre: string; aide?: string; className?: string; children: ReactNode }) {
+function Bloc({ titre, aide, ordre, className = '', children }: { titre: string; aide?: string; ordre: number; className?: string; children: ReactNode }) {
   return (
-    <motion.section variants={apparition} className={`rounded-2xl border bg-card p-6 ${className}`}>
+    <Reveal as="section" ordre={ordre} className={`rounded-2xl border bg-card p-6 ${className}`}>
       <h2 className="font-heading text-lg font-semibold">{titre}</h2>
       {aide && <p className="mt-0.5 text-sm text-muted-foreground">{aide}</p>}
       {children}
-    </motion.section>
+    </Reveal>
   )
 }
 
@@ -95,6 +91,16 @@ export function Dashboard({
     }
   }, [releves, periode, agentId])
 
+  // Le titre sortant s'efface avant que le nouveau n'entre.
+  const titres = useTransition(agentId ?? '', {
+    from: { opacity: 0, transform: 'translate3d(-8px, 0, 0)' },
+    enter: { opacity: 1, transform: 'translate3d(0px, 0, 0)' },
+    leave: { opacity: 0, transform: 'translate3d(8px, 0, 0)' },
+    exitBeforeEnter: true,
+    initial: null,
+    config: { tension: 260, friction: 28, clamp: true },
+  })
+
   const { t } = d
   const vide = d.vus.length === 0
   const totalActivite = SERIES.reduce((s, x) => s + x.valeur(t), 0) || 1
@@ -107,30 +113,22 @@ export function Dashboard({
   }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.07 } } }}
-      className="mx-auto flex max-w-[1320px] flex-col gap-5 px-10 py-9"
-    >
-      <motion.header variants={apparition} className="flex items-end justify-between gap-6">
+    <div className="mx-auto flex max-w-[1320px] flex-col gap-5 px-10 py-9">
+      <Reveal as="header" className="flex items-end justify-between gap-6">
         <div className="min-w-0">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={agentId ?? 'equipe'}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 12 }}
-              transition={{ duration: 0.22 }}
-            >
-              <h1 className="font-heading text-[2.6rem] leading-[1.05] font-semibold tracking-tight">
-                {agent ? nomComplet(agent) : 'Équipe permanence'}
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                {agent ? 'Statistiques individuelles' : `${AGENTS.length} agents`}, {libellePeriode(periode.du, periode.au)}
-              </p>
-            </motion.div>
-          </AnimatePresence>
+          {titres((style, id) => {
+            const a = AGENTS.find((x) => x.id === id)
+            return (
+              <animated.div style={style}>
+                <h1 className="font-heading text-[2.6rem] leading-[1.05] font-semibold tracking-tight">
+                  {a ? nomComplet(a) : 'Équipe permanence'}
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                  {a ? 'Statistiques individuelles' : `${AGENTS.length} agents`}, {libellePeriode(periode.du, periode.au)}
+                </p>
+              </animated.div>
+            )
+          })}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <PeriodePicker value={periode} onChange={onPeriode} />
@@ -148,19 +146,19 @@ export function Dashboard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </motion.header>
+      </Reveal>
 
       {vide ? (
-        <motion.div variants={apparition} className="rounded-2xl border border-dashed bg-card px-8 py-20 text-center">
+        <Reveal ordre={1} className="rounded-2xl border border-dashed bg-card px-8 py-20 text-center">
           <p className="font-heading text-xl font-semibold">Aucun relevé sur cette période</p>
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">
             Choisissez une autre période, ou saisissez les chiffres {agent ? `de ${agent.prenom}` : 'de l’équipe'} pour ces dates.
           </p>
           <Button size="lg" className="mt-6 px-4" onClick={onSaisie}>Saisir des relevés</Button>
-        </motion.div>
+        </Reveal>
       ) : (
         <>
-          <motion.dl variants={apparition} className="grid grid-cols-6 divide-x rounded-2xl border bg-card">
+          <Reveal as="dl" ordre={1} className="grid grid-cols-6 divide-x rounded-2xl border bg-card">
             {INDICATEURS.map((i) => (
               <div key={i.nom} className="px-5 py-5">
                 <dt className="truncate text-sm text-muted-foreground">{i.nom}</dt>
@@ -169,10 +167,10 @@ export function Dashboard({
                 </dd>
               </div>
             ))}
-          </motion.dl>
+          </Reveal>
 
           <div className="grid grid-cols-12 gap-5">
-            <Bloc titre="Taux de décroché" aide="Appels entrants pris par rapport aux appels reçus" className="col-span-4">
+            <Bloc ordre={2} titre="Taux de décroché" aide="Appels entrants pris par rapport aux appels reçus" className="col-span-4">
               <div className="relative mx-auto mt-2 h-60 max-w-72">
                 <DonutDecroche t={t} />
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -190,7 +188,7 @@ export function Dashboard({
               </div>
             </Bloc>
 
-            <Bloc titre="Évolution sur la période" className="col-span-8">
+            <Bloc ordre={3} titre="Évolution sur la période" className="col-span-8">
               <div className="mt-3">
                 <Legende items={[
                   { nom: 'Appels entrants', couleur: C.eau },
@@ -201,7 +199,7 @@ export function Dashboard({
               <div className="mt-2 h-64"><CourbeEvolution points={d.points} /></div>
             </Bloc>
 
-            <Bloc titre="Répartition de l’activité" className="col-span-4">
+            <Bloc ordre={4} titre="Répartition de l’activité" className="col-span-4">
               <div className="mx-auto mt-3 h-52 max-w-60"><CamembertActivite t={t} /></div>
               <ul className="mt-4 space-y-2 text-sm">
                 {SERIES.map((s) => (
@@ -215,7 +213,7 @@ export function Dashboard({
               </ul>
             </Bloc>
 
-            <Bloc
+            <Bloc ordre={5}
               titre={agent ? `${agent.prenom} face à la moyenne de l’équipe` : 'Activité par agent'}
               aide={agent ? undefined : 'Cliquez sur un agent pour ouvrir sa fiche'}
               className="col-span-8"
@@ -233,7 +231,7 @@ export function Dashboard({
             </Bloc>
           </div>
 
-          <Bloc titre={agent ? 'Détail des relevés' : 'Détail par agent'} className="px-0 pb-2 [&>h2]:px-6">
+          <Bloc ordre={6} titre={agent ? 'Détail des relevés' : 'Détail par agent'} className="px-0 pb-2 [&>h2]:px-6">
             <div className="mt-3 max-h-[26rem] overflow-auto">
               <Table>
                 <TableHeader>
@@ -272,6 +270,6 @@ export function Dashboard({
           </Bloc>
         </>
       )}
-    </motion.div>
+    </div>
   )
 }
