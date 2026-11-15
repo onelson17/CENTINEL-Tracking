@@ -19,7 +19,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # npm install plutôt que npm ci : le fichier de verrouillage vient d'un Mac et npm ci le refuse sous Linux.
+      - run: npm install
       - run: npm run build
       - uses: peaceiris/actions-gh-pages@v4
         with:
